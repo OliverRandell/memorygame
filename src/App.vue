@@ -5,17 +5,17 @@
 								Match Pairs
 						</v-layout>
 						<v-layout mb-4>
-								<timer></timer>
-								<status-bar></status-bar>
+								<timer :progress="progress" :time="time"></timer>
+								<status-bar :turns="turns" :matches="matches"></status-bar>
 						</v-layout>
 						<cards-board :cards="cards" @flipcard="flipCard"></cards-board>
 				</v-container>
-				<splash></splash>
+				<splash :showSplash="showSplash" :result="result" :score="score" @resetGame="resetGame"></splash>
 		</v-app>
 </template>
 
 <script>
-	const CardsSet = [
+	const cardsSet = [
 		{
 			name: 'php',
 			img: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/74196/php-logo_1.png'
@@ -71,12 +71,13 @@
 		return _.shuffle(cards);
 	};
 	
-	import Cardsboard from './components/CardsBoard';
+	import CardsBoard from './components/CardsBoard';
 	import StatusBar from './components/StatusBar';
 	import Timer from './components/Timer';
 	import Splash from './components/Splash';
 	import _ from 'lodash';
 	import moment from 'moment';
+import { setTimeout } from 'timers';
 
 	export default {
 		name: "App",
@@ -180,6 +181,39 @@
 					this.result = "Lose";
 				}
 				this.showSplash = true;
+			},
+
+			flipCard(card) {
+				if (card.found || card.flipped) return;
+
+				if (!this.started) {
+					this.startGame();
+				}
+
+				let flipCount = this.flippedCards().length;
+				if(flipCount == 0) {
+					card.flipped = !card.flipped;
+				} else if (flipCount == 1) {
+					card.flipped = !card.flipped;
+					this.turns += 1;
+					if (this.sameFlippedCard()) {
+						this.matches += 1;
+						this.flipBackTimer = setTimeout(() => {
+							this.clearFlipBackTimer();
+							this.setCardFounds();
+							this.clearFlips();
+
+							if (this.checkAllFound()) {
+								this.finishGame();
+							}
+						}, 1000);
+					} else {
+						this.flipBackTimer = setTimeout(() => {
+							this.clearFlipBackTimer();
+							this.clearFlips();
+						}, 1000);
+					}
+				}
 			}
 		}
 	};

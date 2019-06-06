@@ -1,5 +1,5 @@
 # matchpairs
-
+Play memory, matching card pairs with vue.js.
 ## Project setup
 ```
 npm install
